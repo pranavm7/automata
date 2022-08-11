@@ -8,12 +8,12 @@
         // conditional birth
 //  import * as PIXI from 'pixi.js'
 import {Cell} from './classes.js'
-const dimension = 1000;
+const dimension = 500;
 const container = new PIXI.Container();
 let app = new PIXI.Application({ width : dimension, height : dimension, resolution : window.devicePixelRatio || 1, antialias: true, view: document.getElementById(`game`)});
 let iterCount=0;
 
-const boardDimension = 100;
+const boardDimension = 150;
 const rowCount = boardDimension;
 const colCount = boardDimension;
 const OFFSET = 1
