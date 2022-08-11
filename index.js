@@ -8,24 +8,27 @@
         // conditional birth
 //  import * as PIXI from 'pixi.js'
 import {Cell} from './classes.js';
-const dimension = 500;
+//need responsive
+let dimension = parseInt(screen.width * 0.7);
 const container = new PIXI.Container();
 let app = new PIXI.Application({ width : dimension, height : dimension, resolution : window.devicePixelRatio || 1, antialias: true, view: document.getElementById(`game`)});
 let iterCount=0;
 const fps = 60;
-const boardDimension = 150;
-const rowCount = boardDimension;
-const colCount = boardDimension;
+let boardDimension = parseInt(document.getElementById(`size`).innerText.split(' ')[0]);
+let rowCount = boardDimension;
+let colCount = boardDimension;
 const OFFSET = 1;
-
+let filledSquareTexture = null;
+let emptySquareTexture = null;
 // array to draw board
-const cellArray = Array(rowCount*colCount).fill(null);
+const cellArray = Array(boardDimension **2).fill(null);
 // array to track the currently 'alive' cells
 const currentAlive = Array();
 // array to defer the stateChange
 const futureAlive = Array();
 const futureDead  = Array();
 const birthMap = new Map();
+let background = `#000000`;
 
 document.getElementById(`startBtn`).onclick = startCycle;
 document.getElementById(`stopBtn`).onclick = kill;
@@ -56,19 +59,70 @@ function unset(index){
 }
 
 // creates the textures
-let filledSquareTemplate = new PIXI.Graphics();
-filledSquareTemplate.lineStyle(1, 0xFFFFFF, 1);
-filledSquareTemplate.beginFill(0xFFFFFF);
-filledSquareTemplate.drawRect(0,0, 10, 10);
-filledSquareTemplate.endFill();
-const filledSquareTexture = app.renderer.generateTexture(filledSquareTemplate);
+function createTexture(background){
+    if(background === `#FFFFFF`){
+        let filledSquareTemplate = new PIXI.Graphics();
+        filledSquareTemplate.lineStyle(1, 0x000000, 1);
+        filledSquareTemplate.beginFill(0x000000);
+        filledSquareTemplate.drawRect(0,0, 10, 10);
+        filledSquareTemplate.endFill();
+        filledSquareTexture = app.renderer.generateTexture(filledSquareTemplate);
+        
+        let emptySquareTemplate = new PIXI.Graphics();
+        emptySquareTemplate.lineStyle(1, 0xFFFFFF,1);
+        emptySquareTemplate.beginFill(0xFFFFFF);
+        emptySquareTemplate.drawRect(0,0,10,10);
+        emptySquareTemplate.endFill();
+        emptySquareTexture = app.renderer.generateTexture(emptySquareTemplate);
+        return;
+    }
+    let filledSquareTemplate = new PIXI.Graphics();
+    filledSquareTemplate.lineStyle(1, 0xFFFFFF, 1);
+    filledSquareTemplate.beginFill(0xFFFFFF);
+    filledSquareTemplate.drawRect(0,0, 10, 10);
+    filledSquareTemplate.endFill();
+    filledSquareTexture = app.renderer.generateTexture(filledSquareTemplate);
+    
+    let emptySquareTemplate = new PIXI.Graphics();
+    emptySquareTemplate.lineStyle(1, 0x000000,1);
+    emptySquareTemplate.beginFill(0x000000);
+    emptySquareTemplate.drawRect(0,0,10,10);
+    emptySquareTemplate.endFill();
+    emptySquareTexture = app.renderer.generateTexture(emptySquareTemplate);
+}
+createTexture(background);
 
-let emptySquareTemplate = new PIXI.Graphics();
-emptySquareTemplate.lineStyle(1, 0x000000,1);
-emptySquareTemplate.beginFill(0x000000);
-emptySquareTemplate.drawRect(0,0,10,10);
-emptySquareTemplate.endFill();
-const emptySquareTexture = app.renderer.generateTexture(emptySquareTemplate);
+function createOutlinedTexture(background){
+    if(background === `#FFFFFF`){
+        let filledSquareTemplate = new PIXI.Graphics();
+        filledSquareTemplate.lineStyle(1, 0x000000, 1);
+        filledSquareTemplate.beginFill(0x000000);
+        filledSquareTemplate.drawRect(0,0, 10, 10);
+        filledSquareTemplate.endFill();
+        filledSquareTexture = app.renderer.generateTexture(filledSquareTemplate);
+        
+        let emptySquareTemplate = new PIXI.Graphics();
+        emptySquareTemplate.lineStyle(1, 0x000000,1);
+        emptySquareTemplate.beginFill(0xFFFFFF);
+        emptySquareTemplate.drawRect(0,0,10,10);
+        emptySquareTemplate.endFill();
+        emptySquareTexture = app.renderer.generateTexture(emptySquareTemplate);
+        return;
+    }
+    let filledSquareTemplate = new PIXI.Graphics();
+    filledSquareTemplate.lineStyle(1, 0xFFFFFF, 1);
+    filledSquareTemplate.beginFill(0xFFFFFF);
+    filledSquareTemplate.drawRect(0,0, 10, 10);
+    filledSquareTemplate.endFill();
+    filledSquareTexture = app.renderer.generateTexture(filledSquareTemplate);
+    
+    let emptySquareTemplate = new PIXI.Graphics();
+    emptySquareTemplate.lineStyle(1, 0xFFFFFF,1);
+    emptySquareTemplate.beginFill(0x000000);
+    emptySquareTemplate.drawRect(0,0,10,10);
+    emptySquareTemplate.endFill();
+    emptySquareTexture = app.renderer.generateTexture(emptySquareTemplate);
+}
 
 function getSprite(width, height, selected, index) {
     if(selected){
@@ -104,6 +158,7 @@ function onClick(){
 
 // initializes the board
 function drawBoard(){
+    
     cellArray.forEach((element,index,array) => {
         
         array[index] = new Cell(index,colCount);
@@ -372,6 +427,17 @@ function reset(){
     currentAlive.length=0;
     futureAlive.length=0;
     iterCount=0;
+}
+
+function updateBoard(){
+    boardDimension = parseInt(document.getElementById(`size`).innerText.split(' ')[0]);
+    rowCount = boardDimension;
+    colCount = boardDimension;
+    container.removeChildren();
+    createOutlinedTexture(background);
+    cellArray.length = 0;
+    cellArray.fill(null,0,boardDimension**2);
+    drawBoard();
 }
 
 drawBoard();

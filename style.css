@@ -60,10 +60,12 @@ body{
 #canvas-container{
     display: flex;
     justify-content: center;
+    width: 100%;
 }
 
 #canvas-container > canvas{
     border-radius: 5px;
+    width: 100%;
 }
 
 #controlBtns{
