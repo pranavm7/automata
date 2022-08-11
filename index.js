@@ -10,8 +10,7 @@
 import {Cell} from './classes.js'
 const dimension = 1000;
 const container = new PIXI.Container();
-let app = new PIXI.Application({ width : dimension, height : dimension, resolution : window.devicePixelRatio || 1, antialias: true});
-document.body.appendChild(app.view);
+let app = new PIXI.Application({ width : dimension, height : dimension, resolution : window.devicePixelRatio || 1, antialias: true, view: document.getElementById(`game`)});
 let iterCount=0;
 
 const boardDimension = 100;
