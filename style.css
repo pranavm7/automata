@@ -1,0 +1,22 @@
+html {
+    margin: 5%;
+    background-color: #1e1e21;
+    color: #a7a7a8;
+}
+
+text{
+    
+}
+
+h1{
+    text-align: center;
+}
+
+.controls{
+    padding: 2%;
+    text-align: center;
+}
+.controls>button{
+    padding: 2rem;
+    margin: 0.5rem;
+}
