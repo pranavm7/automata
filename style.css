@@ -1,7 +1,12 @@
+* {
+    scrollbar-color: #454a4d #202324;
+}
+
 html {
     margin: 5%;
-    background-color: #1e1e21;
+    background-color: #131516;
     color: #a7a7a8;
+    
 }
 
 body{
@@ -16,6 +21,7 @@ body{
     position: absolute;
     top: 3.5rem;
     margin-top: 2rem;
+    z-index: 1;
 }
 #logo-picture{
     width: 100px;

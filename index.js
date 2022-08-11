@@ -7,12 +7,12 @@
         // *Better approach - when calculating north, south, east, west, get the index numbers of the cells that are inactive, add them to an array and for indexes that repeat exactly three times, turn them live.
         // conditional birth
 //  import * as PIXI from 'pixi.js'
-import {Cell} from './classes.js'
+import {Cell} from './classes.js';
 const dimension = 500;
 const container = new PIXI.Container();
 let app = new PIXI.Application({ width : dimension, height : dimension, resolution : window.devicePixelRatio || 1, antialias: true, view: document.getElementById(`game`)});
 let iterCount=0;
-
+const fps = 60;
 const boardDimension = 150;
 const rowCount = boardDimension;
 const colCount = boardDimension;
@@ -244,7 +244,7 @@ function calculateAliveNeighbors(index){
             }
         }
     })
-    // console.table(tempArr);
+
     let neighborCount = tempArr.filter(e=>e === true).length;
     if (neighborCount < 2 || neighborCount >3){
         futureDead.push(index);
@@ -283,10 +283,27 @@ function birth(birthMap){
 
 let autoPlay=null;
 function startCycle(){
-    autoPlay = setInterval(()=>{try{ cycle();}catch(err){console.log(err);clearInterval(autoPlay);}}, 100);
+    if(currentAlive.length===0){
+        Swal.fire({
+            title: 'Error!',
+            text: 'No alive cells!',
+            icon: 'error',
+            confirmButtonText: 'Continue'
+          });
+        return;
+    }
+
+    autoPlay = setInterval(()=>{try{ cycle();}catch(err){console.log(err);clearInterval(autoPlay);autoPlay=null;}}, 1000/fps);
 }
 
 function kill(){
+    if(autoPlay === null){
+        Swal.fire({
+            text: 'No iterations running.',
+            icon: 'warning',
+            confirmButtonText: 'Continue'
+          });
+    }
     console.log(`[!]\tstopped\n[+]\titerations:\t${iterCount}`);
     clearInterval(autoPlay);
 }
