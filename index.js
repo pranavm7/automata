@@ -16,7 +16,7 @@ const fps = 60;
 const boardDimension = 150;
 const rowCount = boardDimension;
 const colCount = boardDimension;
-const OFFSET = 1
+const OFFSET = 1;
 
 // array to draw board
 const cellArray = Array(rowCount*colCount).fill(null);
@@ -26,6 +26,13 @@ const currentAlive = Array();
 const futureAlive = Array();
 const futureDead  = Array();
 const birthMap = new Map();
+
+document.getElementById(`startBtn`).onclick = startCycle;
+document.getElementById(`stopBtn`).onclick = kill;
+document.getElementById(`autoplayBtn`).onclick = auto;
+document.getElementById(`resetBtn`).onclick = reset;
+let numberOfAlive = getRandomArbitrary(boardDimension/5,(boardDimension*boardDimension)-boardDimension);
+const randomInitSet = new Set();
 
 function set(index){
     if( !currentAlive.includes(index) ){
@@ -37,13 +44,15 @@ function set(index){
 }
 
 function unset(index){
-    let spliceIndex = currentAlive.indexOf(index);
-    if( spliceIndex > -1 ){
-        currentAlive.splice(spliceIndex, 1);
+    if(currentAlive.includes(index)){
+        let spliceIndex = currentAlive.indexOf(index);
+        if( spliceIndex > -1 ){
+            currentAlive.splice(spliceIndex, 1);
+        }
     }
     cellArray[index].selected = false;
     cellArray[index].sprite.selected = false;
-    cellArray[index].sprite.texture = emptySquareTexture;
+    cellArray[index].sprite.texture = emptySquareTexture; 
 }
 
 // creates the textures
@@ -297,7 +306,7 @@ function startCycle(){
 }
 
 function kill(){
-    if(autoPlay === null){
+    if(autoPlay === null || iterCount === 0){
         Swal.fire({
             text: 'No iterations running.',
             icon: 'warning',
@@ -332,16 +341,12 @@ function cycle(){
     birthMap.clear();
     }
 
-document.getElementById(`startBtn`).onclick = startCycle;
-document.getElementById(`stopBtn`).onclick = kill;
-document.getElementById(`autoplay`).onclick = auto;
-let numberOfAlive = getRandomArbitrary(boardDimension/5,(boardDimension*boardDimension)-boardDimension);
+
 
 function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
   }
   
-const randomInitSet = new Set();
 function auto(){
     // pick a random number between 1 and length of the board
     // pick a random index number for the amount of times decided by prev number
@@ -357,6 +362,16 @@ function auto(){
     
     startCycle();
     
+}
+
+function reset(){
+    kill();
+    for(let idx in cellArray){
+        unset(idx);
+    }
+    currentAlive.length=0;
+    futureAlive.length=0;
+    iterCount=0;
 }
 
 drawBoard();
