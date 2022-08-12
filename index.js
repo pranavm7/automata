@@ -429,6 +429,7 @@ function reset(){
     iterCount=0;
 }
 
+//TODO: Hook this function with the scroll in order to dynamically change grid size.
 function updateBoard(){
     boardDimension = parseInt(document.getElementById(`size`).innerText.split(' ')[0]);
     rowCount = boardDimension;
