@@ -8,20 +8,46 @@
         // conditional birth
 //  import * as PIXI from 'pixi.js'
 import {Cell} from './classes.js';
+import {Slider} from './slider.js';
+let boardDimension = parseInt(document.getElementById(`size`).innerText.split(' ')[0]);
+let rowCount = boardDimension;
+let colCount = boardDimension;
+let cellArray = [];
+let rangeElement = document.querySelector('.range [type="range"]');
+let valueElement = document.querySelector('.range .range__value span') ;
+const options = {
+    min: 4,
+    max: 255,
+    cur: 127,
+  };
+  const updateBoard = (value)=>{
+    boardDimension = value;
+    rowCount = boardDimension;
+    colCount = boardDimension;
+    createOutlinedTexture(background);
+    cellArray = new Array(boardDimension*boardDimension).fill(null);
+    drawBoard();
+}
+  if (rangeElement) {
+    let slider = new Slider(rangeElement, valueElement, options, updateBoard);
+    slider.init();
+  }
+  
 //need responsive
 let dimension = parseInt(screen.width * 0.7);
 const container = new PIXI.Container();
 let app = new PIXI.Application({ width : dimension, height : dimension, resolution : window.devicePixelRatio || 1, antialias: true, view: document.getElementById(`game`)});
 let iterCount=0;
-const fps = 60;
-let boardDimension = parseInt(document.getElementById(`size`).innerText.split(' ')[0]);
-let rowCount = boardDimension;
-let colCount = boardDimension;
+const fps = 10;
 const OFFSET = 1;
 let filledSquareTexture = null;
 let emptySquareTexture = null;
 // array to draw board
-const cellArray = Array(boardDimension **2).fill(null);
+boardDimension = parseInt(document.getElementById(`size`).innerText.split(' ')[0]);
+rowCount = boardDimension;
+colCount = boardDimension;
+cellArray = new Array(boardDimension * boardDimension).fill(null);
+
 // array to track the currently 'alive' cells
 const currentAlive = Array();
 // array to defer the stateChange
@@ -29,6 +55,8 @@ const futureAlive = Array();
 const futureDead  = Array();
 const birthMap = new Map();
 let background = `#000000`;
+let bordersVisible = false;
+
 
 document.getElementById(`startBtn`).onclick = startCycle;
 document.getElementById(`stopBtn`).onclick = kill;
@@ -36,6 +64,7 @@ document.getElementById(`autoplayBtn`).onclick = auto;
 document.getElementById(`resetBtn`).onclick = reset;
 let numberOfAlive = getRandomArbitrary(boardDimension/5,(boardDimension*boardDimension)-boardDimension);
 const randomInitSet = new Set();
+
 
 function set(index){
     if( !currentAlive.includes(index) ){
@@ -60,6 +89,7 @@ function unset(index){
 
 // creates the textures
 function createTexture(background){
+    bordersVisible = false;
     if(background === `#FFFFFF`){
         let filledSquareTemplate = new PIXI.Graphics();
         filledSquareTemplate.lineStyle(1, 0x000000, 1);
@@ -93,6 +123,7 @@ function createTexture(background){
 createTexture(background);
 
 function createOutlinedTexture(background){
+    bordersVisible = true;
     if(background === `#FFFFFF`){
         let filledSquareTemplate = new PIXI.Graphics();
         filledSquareTemplate.lineStyle(1, 0x000000, 1);
@@ -158,7 +189,7 @@ function onClick(){
 
 // initializes the board
 function drawBoard(){
-    
+    container.removeChildren();
     cellArray.forEach((element,index,array) => {
         
         array[index] = new Cell(index,colCount);
@@ -176,12 +207,11 @@ function drawBoard(){
                 
                 container.addChild(array[index].sprite);
             });
-        app.stage.addChild(container);
     }
-
-        
+drawBoard();
+app.stage.addChild(container);
+    
 function calculateAliveNeighbors(index){
-    // console.log(`first log: ${index}`);
     let north    = null;
     let south    = null;
     let east     = null;
@@ -191,6 +221,7 @@ function calculateAliveNeighbors(index){
     let southWest= null;
     let northWest= null;
 
+ try{
     if(index !== 0 && index !== (boardDimension*boardDimension-1) && index % boardDimension !== 0 && (index+1) % boardDimension !== 0 && index > boardDimension && index < ((boardDimension * boardDimension) - (boardDimension+1))){  
         north    =  cellArray[index - 1].selected ? true : index-1;
         south    =  cellArray[index + 1].selected ? true : index+1;
@@ -202,7 +233,6 @@ function calculateAliveNeighbors(index){
         northWest=  cellArray[index - boardDimension - 1 ].selected ? true : index - 1 - boardDimension;
     }
     else{
-        // console.log(`edge:${index}`);
         // handling edges
         if (index === 0 || index % boardDimension === 0 || index === (boardDimension*boardDimension)-boardDimension){
             // top edge
@@ -272,6 +302,11 @@ function calculateAliveNeighbors(index){
             
         }
     }
+}catch{
+    console.log(index);
+    console.log(boardDimension);
+    console.log(cellArray);
+}
     
     // Processing:
     let tempArr = [north,northWest,northEast,south,southEast,southWest,west,east];
@@ -372,8 +407,17 @@ function kill(){
     clearInterval(autoPlay);
 }
 
+
 function cycle(){
+    // console.log(`${boardDimension}`);
+    // console.log(`${cellArray.length}`);
+    // console.log(cellArray[boardDimension]);
     iterCount++;
+    // if(bordersVisible){
+    //     createTexture(background);
+    //     cellArray = new Array(boardDimension*boardDimension).fill(null);
+    //     drawBoard();
+    // }
     if(currentAlive.length < 1){
         // clearInterval(autoPlay);
         throw "[!]\tNo cells alive.";
@@ -428,17 +472,3 @@ function reset(){
     futureAlive.length=0;
     iterCount=0;
 }
-
-//TODO: Hook this function with the scroll in order to dynamically change grid size.
-function updateBoard(){
-    boardDimension = parseInt(document.getElementById(`size`).innerText.split(' ')[0]);
-    rowCount = boardDimension;
-    colCount = boardDimension;
-    container.removeChildren();
-    createOutlinedTexture(background);
-    cellArray.length = 0;
-    cellArray.fill(null,0,boardDimension**2);
-    drawBoard();
-}
-
-drawBoard();
