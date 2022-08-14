@@ -9,24 +9,33 @@
 //  import * as PIXI from 'pixi.js'
 import {Cell} from './classes.js';
 import {Slider} from './slider.js';
-let boardDimension = parseInt(document.getElementById(`size`).innerText.split(' ')[0]);
-let rowCount = boardDimension;
-let colCount = boardDimension;
+let boardDimension = null;//parseInt(document.getElementById(`size`).innerText.split(' ')[0]);
+let rowCount       = null;//boardDimension;
+let colCount       = null;//boardDimension;
 let cellArray = [];
 let rangeElement = document.querySelector('.range [type="range"]');
 let valueElement = document.querySelector('.range .range__value span') ;
 const options = {
-    min: 4,
+    min: 5,
     max: 255,
-    cur: 127,
+    cur: 125,
   };
   const updateBoard = (value)=>{
+    for(let idx in cellArray){
+        unset(idx);
+    }
+    currentAlive.length=0;
+    futureAlive.length=0;
+    iterCount=0;
+    cellArray.length=0;
     boardDimension = value;
     rowCount = boardDimension;
     colCount = boardDimension;
     createOutlinedTexture(background);
     cellArray = new Array(boardDimension*boardDimension).fill(null);
+    numberOfAlive = getRandomArbitrary(boardDimension/4,(boardDimension*boardDimension)-boardDimension);
     drawBoard();
+    // console.log(cellArray);
 }
   if (rangeElement) {
     let slider = new Slider(rangeElement, valueElement, options, updateBoard);
@@ -62,17 +71,20 @@ document.getElementById(`startBtn`).onclick = startCycle;
 document.getElementById(`stopBtn`).onclick = kill;
 document.getElementById(`autoplayBtn`).onclick = auto;
 document.getElementById(`resetBtn`).onclick = reset;
-let numberOfAlive = getRandomArbitrary(boardDimension/5,(boardDimension*boardDimension)-boardDimension);
+let numberOfAlive = null;
 const randomInitSet = new Set();
+createTexture(background);
+drawBoard();
+app.stage.addChild(container);
 
 
 function set(index){
-    if( !currentAlive.includes(index) ){
-        currentAlive.push(index);
-        cellArray[index].selected = true;
-        cellArray[index].sprite.selected = true;
-        cellArray[index].sprite.texture = filledSquareTexture;
-    }
+        if( !currentAlive.includes(index) ){
+            currentAlive.push(index);
+            cellArray[index].selected = true;
+            cellArray[index].sprite.selected = true;
+            cellArray[index].sprite.texture = filledSquareTexture;
+        }
 }
 
 function unset(index){
@@ -120,7 +132,7 @@ function createTexture(background){
     emptySquareTemplate.endFill();
     emptySquareTexture = app.renderer.generateTexture(emptySquareTemplate);
 }
-createTexture(background);
+
 
 function createOutlinedTexture(background){
     bordersVisible = true;
@@ -208,8 +220,7 @@ function drawBoard(){
                 container.addChild(array[index].sprite);
             });
     }
-drawBoard();
-app.stage.addChild(container);
+
     
 function calculateAliveNeighbors(index){
     let north    = null;
@@ -220,9 +231,8 @@ function calculateAliveNeighbors(index){
     let west     = null;
     let southWest= null;
     let northWest= null;
-
- try{
     if(index !== 0 && index !== (boardDimension*boardDimension-1) && index % boardDimension !== 0 && (index+1) % boardDimension !== 0 && index > boardDimension && index < ((boardDimension * boardDimension) - (boardDimension+1))){  
+        try{
         north    =  cellArray[index - 1].selected ? true : index-1;
         south    =  cellArray[index + 1].selected ? true : index+1;
         east     =  cellArray[index + boardDimension].selected? true : index + boardDimension;
@@ -231,6 +241,17 @@ function calculateAliveNeighbors(index){
         west     =  cellArray[index - boardDimension].selected? true : index - boardDimension;
         southWest=  cellArray[index - boardDimension + 1 ].selected? true :index + 1 - boardDimension;
         northWest=  cellArray[index - boardDimension - 1 ].selected ? true : index - 1 - boardDimension;
+        }
+        catch(err){
+            console.log(cellArray[index - 1])
+            console.log(cellArray[index + 1])
+            console.log(cellArray[index + boardDimension])
+            console.log(cellArray[index + boardDimension - 1 ])
+            console.log(cellArray[index + boardDimension + 1 ])
+            console.log(cellArray[index - boardDimension])
+            console.log(cellArray[index - boardDimension + 1 ])
+            console.log(cellArray[index - boardDimension - 1 ])
+        }
     }
     else{
         // handling edges
@@ -302,12 +323,8 @@ function calculateAliveNeighbors(index){
             
         }
     }
-}catch{
-    console.log(index);
-    console.log(boardDimension);
-    console.log(cellArray);
-}
-    
+
+    // console.log(`Passed phase 1`)
     // Processing:
     let tempArr = [north,northWest,northEast,south,southEast,southWest,west,east];
     // console.log(tempArr);
@@ -343,7 +360,7 @@ function calculateAliveNeighbors(index){
             }
         }
     })
-
+    // console.log(`Passed phase 2`)
     let neighborCount = tempArr.filter(e=>e === true).length;
     if (neighborCount < 2 || neighborCount >3){
         futureDead.push(index);
@@ -391,6 +408,9 @@ function startCycle(){
           });
         return;
     }
+    if(autoPlay){
+        clearInterval(autoPlay);
+    }
 
     autoPlay = setInterval(()=>{try{ cycle();}catch(err){console.log(err);clearInterval(autoPlay);autoPlay=null;}}, 1000/fps);
 }
@@ -411,20 +431,15 @@ function kill(){
 function cycle(){
     // console.log(`${boardDimension}`);
     // console.log(`${cellArray.length}`);
-    // console.log(cellArray[boardDimension]);
+    //  console.log(cellArray);
     iterCount++;
-    // if(bordersVisible){
-    //     createTexture(background);
-    //     cellArray = new Array(boardDimension*boardDimension).fill(null);
-    //     drawBoard();
-    // }
     if(currentAlive.length < 1){
         // clearInterval(autoPlay);
         throw "[!]\tNo cells alive.";
     }
     // Process current state of the board
     for (let currentAliveCell in currentAlive){
-        calculateAliveNeighbors(currentAlive[currentAliveCell]);
+            calculateAliveNeighbors(currentAlive[currentAliveCell]);
     }
     // Commit changes
     for(let deadCells in futureDead){
@@ -435,15 +450,15 @@ function cycle(){
     }
     birth(birthMap);
     // flush future arrays
-    futureDead.length = 0;
-    futureAlive.length = 0;
+    futureDead.length = new Array();
+    futureAlive.length = new Array();
     birthMap.clear();
     }
 
 
 
 function getRandomArbitrary(min, max) {
-    return Math.random() * (max - min) + min;
+    return Math.floor(Math.random() * (max - min) + min);
   }
   
 function auto(){
@@ -451,8 +466,18 @@ function auto(){
     // pick a random index number for the amount of times decided by prev number
     //set them as on
     //let it run.
+    if(bordersVisible){
+        boardDimension = parseInt(document.getElementById(`size`).innerText.split(' ')[0]);
+        numberOfAlive = getRandomArbitrary(boardDimension/4,(boardDimension*boardDimension)-boardDimension);
+        rowCount = boardDimension;
+        colCount = boardDimension;
+        createTexture(background);
+        cellArray = new Array(boardDimension*boardDimension).fill(null);
+        drawBoard();
+    }
+    numberOfAlive = getRandomArbitrary(boardDimension/4,(boardDimension*boardDimension)-boardDimension);
     while(numberOfAlive>=0){
-        randomInitSet.add(getRandomArbitrary(0,(boardDimension*boardDimension)));
+        randomInitSet.add(getRandomArbitrary(0,cellArray.length-1));
         numberOfAlive--;
     }
     randomInitSet.forEach(val => {
@@ -471,4 +496,5 @@ function reset(){
     currentAlive.length=0;
     futureAlive.length=0;
     iterCount=0;
+    cellArray.length=0;
 }
